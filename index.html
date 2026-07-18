@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quét đi rồi biết 💌</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#2B1620; --paper:#FFF6F1; --blush:#F5A3B7;
+    --rose:#D64560; --gold:#C9A24B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-height:100vh;
+    background:radial-gradient(1200px 800px at 70% -10%, #4A2438 0%, var(--ink) 55%);
+    font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
+    color:var(--paper); overflow-x:hidden;
+  }
+  .hidden{display:none !important}
+
+  /* ============ CHẾ ĐỘ 1: TẠO QR ============ */
+  #builder{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px 16px}
+  .wrap{width:100%;max-width:940px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+  @media(max-width:760px){.wrap{grid-template-columns:1fr;gap:28px}}
+  .eyebrow{letter-spacing:.35em;font-size:11px;text-transform:uppercase;color:var(--blush);margin-bottom:14px}
+  h1{font-family:Georgia,serif;font-size:clamp(28px,4.5vw,42px);font-weight:600;line-height:1.15;margin-bottom:14px}
+  h1 em{font-style:italic;color:var(--blush)}
+  .lead{color:#E8C9D4;font-size:15px;line-height:1.65;margin-bottom:22px;max-width:42ch}
+  label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--blush);margin:16px 0 6px}
+  input,textarea{
+    width:100%;background:rgba(255,246,241,.06);border:1px solid rgba(245,163,183,.35);
+    border-radius:10px;color:var(--paper);padding:12px 14px;font-size:15px;font-family:inherit;
+    transition:border-color .2s, background .2s;
+  }
+  input:focus,textarea:focus{outline:2px solid var(--blush);outline-offset:2px;border-color:var(--blush);background:rgba(255,246,241,.1)}
+  textarea{resize:vertical;min-height:100px;line-height:1.55}
+  .hint{font-size:12px;color:#B98CA0;margin-top:6px;line-height:1.5}
+  .hint code{background:rgba(255,246,241,.1);padding:1px 5px;border-radius:4px;font-size:11px}
+  .card{
+    background:var(--paper);color:var(--ink);border-radius:18px;padding:32px 28px 24px;
+    text-align:center;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.45);
+  }
+  .card::before{content:"";position:absolute;inset:10px;border-radius:12px;border:1px solid var(--gold);pointer-events:none}
+  .card .to{font-family:Georgia,serif;font-style:italic;font-size:20px;color:var(--rose);margin-bottom:14px;min-height:24px}
+  #qrbox{display:inline-block;padding:14px;background:#fff;border-radius:12px;animation:heartbeat 2.4s ease-in-out infinite}
+  #qrbox img{display:block;width:210px;height:210px;image-rendering:pixelated}
+  @keyframes heartbeat{0%,100%{transform:scale(1)}12%{transform:scale(1.035)}24%{transform:scale(1)}36%{transform:scale(1.02)}48%{transform:scale(1)}}
+  .card .cap{margin-top:14px;font-size:13px;letter-spacing:.08em;color:#8A5A6B}
+  .heart{color:var(--rose)}
+  .btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;justify-content:center}
+  button{
+    border:0;border-radius:999px;padding:12px 22px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:transform .15s;
+  }
+  button:hover{transform:translateY(-1px)}
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .primary{background:var(--rose);color:#fff;box-shadow:0 8px 20px rgba(214,69,96,.4)}
+  .ghost{background:transparent;color:var(--rose);border:1px solid var(--rose)}
+  .warn{
+    margin-top:14px;font-size:12px;color:#B98CA0;background:rgba(245,163,183,.08);
+    border:1px dashed rgba(245,163,183,.35);border-radius:10px;padding:10px 12px;line-height:1.6;text-align:left;
+  }
+
+  /* ============ CHẾ ĐỘ 2: TRANG TỎ TÌNH ============ */
+  #scene{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}
+  #hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+  .fh{position:absolute;bottom:-8vh;user-select:none;animation:floatUp linear forwards;opacity:0}
+  .ft{
+    font-family:Georgia,serif;font-style:italic;color:var(--blush);
+    text-shadow:0 2px 10px rgba(0,0,0,.5);white-space:nowrap;
+  }
+  @keyframes floatUp{
+    0%{transform:translateY(0) rotate(0deg);opacity:0}
+    10%{opacity:.85}
+    100%{transform:translateY(-115vh) rotate(30deg);opacity:0}
+  }
+  .ft{animation-name:floatDrift}
+  @keyframes floatDrift{
+    0%{transform:translateY(0) translateX(0);opacity:0}
+    10%{opacity:.75}
+    50%{transform:translateY(-58vh) translateX(24px)}
+    100%{transform:translateY(-115vh) translateX(-16px);opacity:0}
+  }
+  .scene-inner{position:relative;z-index:2;max-width:560px}
+  .scene-name{
+    font-family:Georgia,serif;font-style:italic;font-size:clamp(34px,7vw,56px);
+    color:var(--blush);margin-bottom:22px;opacity:0;animation:fadeUp 1s ease .4s forwards;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  .scene-msg{
+    font-size:clamp(17px,3vw,21px);line-height:1.8;color:var(--paper);
+    min-height:4.5em;text-align:center;
+  }
+  .para{white-space:pre-wrap;margin-bottom:1em;opacity:.55;transition:opacity .6s}
+  .para.active{opacity:1}
+  .para.done{opacity:.8}
+  .cursor{display:inline-block;width:2px;height:1.1em;background:var(--blush);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .scene-btns{margin-top:36px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease forwards;animation-play-state:paused;position:relative}
+  .scene-btns.show{animation-play-state:running}
+  #yes{background:var(--rose);color:#fff;font-size:17px;padding:14px 34px;box-shadow:0 10px 26px rgba(214,69,96,.5)}
+  #yes:hover{transform:translateY(-2px) scale(1.05)}
+  #no{background:transparent;color:#B98CA0;border:1px solid #6b4a58;position:relative;transition:left .25s ease, top .25s ease, transform .15s}
+  .answer{
+    margin-top:30px;font-family:Georgia,serif;font-style:italic;
+    font-size:clamp(22px,4vw,30px);color:var(--blush);opacity:0;transition:opacity .8s;
+  }
+  .answer.show{opacity:1}
+  .burst{position:fixed;font-size:22px;pointer-events:none;z-index:5;animation:burstFly .9s ease-out forwards}
+  @keyframes burstFly{
+    from{transform:translate(0,0) scale(1);opacity:1}
+    to{transform:translate(var(--dx), var(--dy)) scale(.4);opacity:0}
+  }
+  @media(prefers-reduced-motion:reduce){
+    #qrbox,.fh,.cursor{animation:none}
+    .fh{display:none}
+    .scene-name,.scene-btns{animation-duration:.01s}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ CHẾ ĐỘ TẠO QR ============ -->
+<div id="builder">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Một lời chưa dám nói</p>
+      <h1>Quét mã QR, mở ra<br><em>cả một màn tỏ tình</em></h1>
+      <p class="lead">Người ấy quét mã → điện thoại mở trang này với tim bay, lời nhắn gõ từng chữ, và nút "Đồng ý" chờ sẵn. Nút "Suy nghĩ đã" thì... đố bấm được 😌</p>
+
+      <label for="name">Tên người ấy</label>
+      <input id="name" type="text" placeholder="Ví dụ: Linh" maxlength="30">
+
+      <label for="msg">Lời tỏ tình (mỗi đoạn cách nhau một dòng trống — sẽ hiện ra lần lượt)</label>
+      <textarea id="msg" maxlength="500" style="min-height:180px">Có một điều anh giấu trong lòng lâu lắm rồi, hôm nay mượn cái mã QR này để nói.
+
+Từ ngày quen em, ngày nào anh cũng có lý do để cười. Tin nhắn của em là thứ anh mong nhất mỗi tối.
+
+Anh không giỏi nói lời hoa mỹ, chỉ chắc một điều: ở cạnh em, anh muốn tốt lên mỗi ngày.
+
+Vậy nên... làm người yêu anh nhé? ❤️</textarea>
+      <p class="hint">Giữ dưới ~500 ký tự để mã QR không quá dày, điện thoại quét cho nhạy.</p>
+
+      <label for="host">Địa chỉ trang sau khi bạn đưa file này lên mạng</label>
+      <input id="host" type="text" placeholder="https://username.github.io/to-tinh/">
+      <p class="hint">Đẩy file này lên GitHub Pages (repo → Settings → Pages) rồi dán link vào đây. Lời nhắn được nhét vào QR qua tham số <code>?d=...</code> nên đổi lời không cần deploy lại.</p>
+    </div>
+
+    <div class="card">
+      <p class="to" id="to">Gửi em 💌</p>
+      <div id="qrbox"></div>
+      <p class="cap">quét đi, có điều muốn nói <span class="heart">♥</span></p>
+      <div class="btns">
+        <button class="primary" id="download">Tải thiệp QR (PNG)</button>
+        <button class="ghost" id="preview">Xem thử màn tỏ tình</button>
+      </div>
+      <div class="warn" id="hostWarn">
+        ⚠️ Chưa có địa chỉ trang — QR tạm trỏ đến trang hiện tại. Hãy host file rồi điền link để QR quét được từ điện thoại người ấy.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CHẾ ĐỘ TỎ TÌNH ============ -->
+<div id="scene" class="hidden">
+  <div id="hearts"></div>
+  <div class="scene-inner">
+    <p class="scene-name" id="sceneName"></p>
+    <div class="scene-msg" id="paras"></div>
+    <div class="scene-btns" id="sceneBtns">
+      <button id="yes">Đồng ý ❤️</button>
+      <button id="no">Để suy nghĩ đã 🙈</button>
+    </div>
+    <p class="answer" id="answer"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- tiện ích encode/decode UTF-8 <-> base64 ----------
+  function enc(obj){
+    return encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(obj)))));
+  }
+  function dec(s){
+    try{ return JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(s))))); }
+    catch(e){ return null; }
+  }
+
+  const params = new URLSearchParams(location.search);
+  const payload = params.get('d') ? dec(params.get('d')) : null;
+
+  if (payload && payload.m){ startScene(payload); }
+  else { startBuilder(); }
+
+  // ==================================================
+  // CHẾ ĐỘ 1: TẠO QR
+  // ==================================================
+  function startBuilder(){
+    const nameEl = document.getElementById('name');
+    const msgEl  = document.getElementById('msg');
+    const hostEl = document.getElementById('host');
+    const toEl   = document.getElementById('to');
+    const box    = document.getElementById('qrbox');
+    const warn   = document.getElementById('hostWarn');
+
+    // Nếu đang mở từ web (không phải file://) thì tự điền địa chỉ hiện tại
+    if (location.protocol.startsWith('http')) {
+      hostEl.value = location.origin + location.pathname;
+    }
+
+    function buildUrl(){
+      const base = hostEl.value.trim() || (location.origin + location.pathname);
+      const sep = base.includes('?') ? '&' : '?';
+      return base + sep + 'd=' + enc({ n: nameEl.value.trim(), m: msgEl.value.trim() || 'Làm người yêu anh nhé? ❤️' });
+    }
+
+    function toUtf8Bytes(str){ return unescape(encodeURIComponent(str)); }
+
+    function render(){
+      toEl.textContent = nameEl.value.trim() ? 'Gửi ' + nameEl.value.trim() + ' 💌' : 'Gửi em 💌';
+      warn.classList.toggle('hidden', !!hostEl.value.trim() && hostEl.value.trim().startsWith('http'));
+      box.innerHTML = '';
+      try{
+        if (typeof qrcode !== 'function') throw new Error('Thư viện QR chưa tải được — kiểm tra mạng rồi tải lại trang.');
+        const q = qrcode(0, 'M');
+        q.addData(toUtf8Bytes(buildUrl()), 'Byte');
+        q.make();
+        const img = document.createElement('img');
+        img.src = q.createDataURL(5, 6);
+        img.alt = 'Mã QR mở trang tỏ tình';
+        box.appendChild(img);
+      }catch(e){
+        box.innerHTML = '<p style="max-width:210px;font-size:13px;color:#D64560;padding:10px">' +
+          (String(e.message).includes('overflow') ? 'Lời nhắn dài quá, rút gọn bớt nhé!' : e.message) + '</p>';
+      }
+    }
+
+    let t;
+    function debounced(){ clearTimeout(t); t = setTimeout(render, 250); }
+    nameEl.addEventListener('input', debounced);
+    msgEl.addEventListener('input', debounced);
+    hostEl.addEventListener('input', debounced);
+
+    document.getElementById('preview').addEventListener('click', () => {
+      location.search = 'd=' + enc({ n: nameEl.value.trim(), m: msgEl.value.trim() || 'Làm người yêu anh nhé? ❤️' });
+    });
+
+    document.getElementById('download').addEventListener('click', () => {
+      const src = box.querySelector('img');
+      if(!src || !src.complete) return;
+      const W = 640, H = 800;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#FFF6F1'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = '#C9A24B'; ctx.lineWidth = 2;
+      ctx.strokeRect(24,24,W-48,H-48);
+      ctx.fillStyle = '#D64560';
+      ctx.font = 'italic 34px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(toEl.textContent.replace(' 💌',''), W/2, 110);
+      const size = 380, x = (W-size)/2, y = 160;
+      ctx.fillStyle = '#fff'; ctx.fillRect(x-16,y-16,size+32,size+32);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(src, x, y, size, size);
+      ctx.fillStyle = '#8A5A6B';
+      ctx.font = '20px Georgia, serif';
+      ctx.fillText('quét đi, có điều muốn nói ♥', W/2, y + size + 70);
+      ctx.fillStyle = '#D64560';
+      ctx.font = '26px Georgia, serif';
+      ctx.fillText('♥', W/2, H - 60);
+      const a = document.createElement('a');
+      a.download = 'thiep-to-tinh-qr.png';
+      a.href = c.toDataURL('image/png');
+      a.click();
+    });
+
+    render();
+  }
+
+  // ==================================================
+  // CHẾ ĐỘ 2: MÀN TỎ TÌNH ĐỘNG
+  // ==================================================
+  function startScene(data){
+    document.getElementById('builder').classList.add('hidden');
+    document.getElementById('scene').classList.remove('hidden');
+    document.title = (data.n ? data.n + ' ơi' : 'Em ơi') + ' 💌';
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // --- tim bay xen kẽ những câu chữ ngọt ngào ---
+    const heartsBox = document.getElementById('hearts');
+    const EMOJIS = ['❤️','💗','💕','💖','🌸'];
+    const PHRASES = [
+      (data.n || 'em') + ' ơi',
+      'thích cậu ghê',
+      'nhớ lắm luôn á',
+      'là cậu, chỉ cậu thôi',
+      'tim này của cậu đó',
+      'chốt đơn nha 🥺',
+      'định mệnh đấy',
+      'cười cái coi ❤️'
+    ];
+    let heartTimer = null;
+    function spawnFloat(){
+      const el = document.createElement('span');
+      const isText = Math.random() < 0.35;
+      if (isText){
+        el.className = 'fh ft';
+        el.textContent = PHRASES[Math.random()*PHRASES.length|0];
+        el.style.fontSize = (13 + Math.random()*7) + 'px';
+        el.style.left = (5 + Math.random()*85) + 'vw';
+        el.style.animationDuration = (9 + Math.random()*6) + 's';
+      } else {
+        el.className = 'fh';
+        el.textContent = EMOJIS[Math.random()*EMOJIS.length|0];
+        el.style.fontSize = (14 + Math.random()*22) + 'px';
+        el.style.left = (Math.random()*100) + 'vw';
+        el.style.animationDuration = (6 + Math.random()*6) + 's';
+      }
+      heartsBox.appendChild(el);
+      setTimeout(() => el.remove(), 16000);
+    }
+    if (!reduced){
+      for(let i=0;i<8;i++) setTimeout(spawnFloat, i*350);
+      heartTimer = setInterval(spawnFloat, 650);
+    }
+
+    // --- tên hiện lên ---
+    document.getElementById('sceneName').textContent = data.n ? data.n + ' ơi...' : 'Này...';
+
+    // --- lời nhắn gõ ra từng đoạn một ---
+    const parasBox = document.getElementById('paras');
+    const btns = document.getElementById('sceneBtns');
+    const paragraphs = data.m.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+
+    function typeParagraph(idx){
+      if (idx >= paragraphs.length){
+        cursor.remove();
+        btns.classList.add('show');
+        return;
+      }
+      const p = document.createElement('p');
+      p.className = 'para active';
+      const span = document.createElement('span');
+      p.appendChild(span);
+      p.appendChild(cursor);
+      parasBox.appendChild(p);
+
+      if (reduced){
+        span.textContent = paragraphs[idx];
+        p.classList.replace('active','done');
+        typeParagraph(idx + 1);
+        return;
+      }
+
+      const chars = Array.from(paragraphs[idx]); // không cắt đôi emoji
+      let i = 0;
+      (function tick(){
+        if (i < chars.length){
+          span.textContent += chars[i++];
+          setTimeout(tick, chars[i-1] === '\n' ? 350 : 50 + Math.random()*40);
+        } else {
+          p.classList.replace('active','done');
+          setTimeout(() => typeParagraph(idx + 1), 850); // ngừng một nhịp rồi sang đoạn sau
+        }
+      })();
+    }
+    setTimeout(() => typeParagraph(0), 1400);
+
+    // --- nút "suy nghĩ đã" chạy trốn ---
+    const noBtn = document.getElementById('no');
+    let dodges = 0;
+    function dodge(){
+      dodges++;
+      const pad = 20;
+      const maxX = Math.min(140, window.innerWidth/2 - 90);
+      noBtn.style.position = 'relative';
+      noBtn.style.left = ((Math.random()*2-1) * maxX) + 'px';
+      noBtn.style.top  = ((Math.random()*2-1) * 60) + 'px';
+      if (dodges === 3) noBtn.textContent = 'Bắt không được đâu 😝';
+      if (dodges === 6) noBtn.textContent = 'Thôi bấm nút kia đi mà 🥺';
+    }
+    noBtn.addEventListener('mouseenter', dodge);
+    noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); dodge(); }, {passive:false});
+    noBtn.addEventListener('click', (e) => { e.preventDefault(); dodge(); });
+
+    // --- nút đồng ý: pháo tim + lời đáp ---
+    document.getElementById('yes').addEventListener('click', (e) => {
+      const answer = document.getElementById('answer');
+      answer.textContent = 'Yêu ' + (data.n || 'em') + ' nhiều lắm ❤️';
+      answer.classList.add('show');
+      noBtn.style.display = 'none';
+      e.target.disabled = true;
+      e.target.textContent = 'Đã đồng ý 🥰';
+      if (heartTimer) clearInterval(heartTimer);
+      if (reduced) return;
+      const cx = e.clientX || window.innerWidth/2;
+      const cy = e.clientY || window.innerHeight/2;
+      for (let k=0; k<36; k++){
+        const b = document.createElement('span');
+        b.className = 'burst';
+        b.textContent = EMOJIS[k % EMOJIS.length];
+        b.style.left = cx + 'px';
+        b.style.top  = cy + 'px';
+        const ang = (k/36) * Math.PI*2;
+        const dist = 90 + Math.random()*160;
+        b.style.setProperty('--dx', Math.cos(ang)*dist + 'px');
+        b.style.setProperty('--dy', Math.sin(ang)*dist + 'px');
+        document.body.appendChild(b);
+        setTimeout(() => b.remove(), 1000);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
